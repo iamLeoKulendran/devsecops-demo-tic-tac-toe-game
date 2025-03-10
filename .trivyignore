@@ -1,0 +1,3 @@
+# Temporarily ignoring these vulnerabilities until base image is updated
+CVE-2024-56171
+CVE-2025-24928

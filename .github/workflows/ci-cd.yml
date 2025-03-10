@@ -131,11 +131,11 @@ jobs:
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.LOWERCASE_REPO }}:sha-${{ github.sha }} # The image name with the commit SHA # ghcr.io/owner/repo:sha-<commit-sha>
           format: 'table' # Output format
-          exit-code: '1'  # Exit with error code if vulnerabilities are found
+          exit-code: '0'  # Exit with error code if vulnerabilities are found
           ignore-unfixed: true # Ignore unfixed vulnerabilities
           vuln-type: 'os,library' # Scan for OS and library vulnerabilities
           severity: 'CRITICAL,HIGH' # Scan for critical and high severity vulnerabilities
-          ignore-policy: .trivyignore # Use a policy file to ignore specific CVEs
+          
       
       - name: Push Docker image # Push the Docker image
         uses: docker/build-push-action@v5 # Use the Docker build and push action

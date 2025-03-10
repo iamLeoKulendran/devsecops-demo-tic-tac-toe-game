@@ -79,7 +79,8 @@ jobs:
     needs: [build]
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: ${{ github.repository }}  # Use the GitHub repository name as the image name
+      # Converting image name to lowercase to avoid Docker reference parsing issues
+      IMAGE_NAME: ${{ format('{0}', github.repository) }}  # Use the GitHub repository name as the image name
     outputs:
       image_tag: ${{ steps.set_output.outputs.image_tag }}  # Output the image tag for later use
     steps:
@@ -102,11 +103,15 @@ jobs:
           username: ${{ github.actor }} # This is the GitHub username
           password: ${{ secrets.TOKEN }} # This is a GitHub Personal Access Token
       
+      - name: Convert repository name to lowercase
+        id: repo_name
+        run: echo "LOWERCASE_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      
       - name: Extract metadata for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} # The image name # ghcr.io/owner/repo:sha-<commit-sha>
+          images: ${{ env.REGISTRY }}/${{ env.LOWERCASE_REPO }} # The image name # ghcr.io/owner/repo:sha-<commit-sha>
           tags: |
             type=sha,format=long    
             type=ref,event=branch
@@ -124,7 +129,7 @@ jobs:
       - name: Run Trivy vulnerability scanner # Run the Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master # Use the Trivy action
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }} # The image name with the commit SHA # ghcr.io/owner/repo:sha-<commit-sha>
+          image-ref: ${{ env.REGISTRY }}/${{ env.LOWERCASE_REPO }}:sha-${{ github.sha }} # The image name with the commit SHA # ghcr.io/owner/repo:sha-<commit-sha>
           format: 'table' # Output format
           exit-code: '1'  # Exit with error code if vulnerabilities are found
           ignore-unfixed: true # Ignore unfixed vulnerabilities
@@ -165,8 +170,11 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           REGISTRY: ghcr.io
         run: |
+          # Convert repository name to lowercase
+          LOWERCASE_REPO=$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')
+          
           # Define the new image with tag
-          NEW_IMAGE="${REGISTRY}/${GITHUB_REPOSITORY}:${IMAGE_TAG}"
+          NEW_IMAGE="${REGISTRY}/${LOWERCASE_REPO}:${IMAGE_TAG}"
           
           # Update the deployment file directly
           sed -i "s|image: ${REGISTRY}/.*|image: ${NEW_IMAGE}|g" kubernetes/deployment.yaml

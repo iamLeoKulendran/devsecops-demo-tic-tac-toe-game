@@ -135,6 +135,7 @@ jobs:
           ignore-unfixed: true # Ignore unfixed vulnerabilities
           vuln-type: 'os,library' # Scan for OS and library vulnerabilities
           severity: 'CRITICAL,HIGH' # Scan for critical and high severity vulnerabilities
+          ignore-policy: .trivyignore # Use a policy file to ignore specific CVEs
       
       - name: Push Docker image # Push the Docker image
         uses: docker/build-push-action@v5 # Use the Docker build and push action
